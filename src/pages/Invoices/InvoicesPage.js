@@ -7,13 +7,11 @@ import toast from 'react-hot-toast';
 import {
   FiPlus,
   FiSearch,
-  FiFilter,
   FiEdit,
   FiEye,
   FiTrash2,
   FiSend,
   FiDownload,
-  FiMoreVertical,
   FiFileText
 } from 'react-icons/fi';
 import Layout from '../../components/Layout/Layout';

@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../../context/AuthContext';
-import { FiEye, FiEyeOff, FiMail, FiLock, FiUser, FiBriefcase, FiUsers } from 'react-icons/fi';
+import { FiEye, FiEyeOff, FiMail, FiLock, FiUser } from 'react-icons/fi';
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [userType, setUserType] = useState('business');
-  const navigate = useNavigate();
+  const userType = 'business';
   const { register: registerUser, isAuthenticated } = useAuth();
   
   const {

@@ -7,10 +7,11 @@ const ProductsPage = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [products, setProducts] = useState([]);
-  const [form, setForm] = useState({ id: null, name: '', sku: '', rate: 0, taxRate: 0, unit: 'unit', description: '' });
+  const [form, setForm] = useState({ id: null, name: '', sku: '', rate: 0, taxRate: 0, quantity: 0, unit: 'unit', description: '' });
   const [skuError, setSkuError] = useState('');
   const [rateError, setRateError] = useState('');
   const [taxError, setTaxError] = useState('');
+  const [qtyError, setQtyError] = useState('');
 
   const load = async () => {
     setLoading(true);
@@ -47,16 +48,23 @@ const ProductsPage = () => {
         return;
       }
 
-      const payload = { name: form.name, sku: form.sku, description: form.description, rate: rateNum, taxRate: taxNum, unit: form.unit };
+      const qtyNum = Number(form.quantity);
+      if (!Number.isInteger(qtyNum) || qtyNum < 0) {
+        setQtyError('Quantity must be a whole number >= 0');
+        setSaving(false);
+        return;
+      }
+
+      const payload = { name: form.name, sku: form.sku, description: form.description, rate: rateNum, taxRate: taxNum, quantity: qtyNum, unit: form.unit };
       if (form.id) await productsAPI.update(form.id, payload); else await productsAPI.create(payload);
-      setForm({ id: null, name: '', sku: '', rate: 0, taxRate: 0, unit: 'unit', description: '' });
+      setForm({ id: null, name: '', sku: '', rate: 0, taxRate: 0, quantity: 0, unit: 'unit', description: '' });
       await load();
     } finally {
       setSaving(false);
     }
   };
 
-  const edit = (p) => setForm({ id: p._id, name: p.name, sku: p.sku || '', rate: p.rate, taxRate: p.taxRate || 0, unit: p.unit || 'unit', description: p.description || '' });
+  const edit = (p) => setForm({ id: p._id, name: p.name, sku: p.sku || '', rate: p.rate, taxRate: p.taxRate || 0, quantity: p.quantity ?? 0, unit: p.unit || 'unit', description: p.description || '' });
   const remove = async (id) => { if (window.confirm('Delete product?')) { await productsAPI.remove(id); await load(); } };
 
   return (
@@ -123,6 +131,22 @@ const ProductsPage = () => {
               }}
             />
             {taxError && <div className="text-sm text-red-600 mt-1">{taxError}</div>}
+            <input
+              className="border rounded px-3 py-2"
+              placeholder="Stock Qty"
+              inputMode="numeric"
+              value={form.quantity}
+              onChange={e => {
+                const raw = String(e.target.value || '');
+                const filtered = raw.replace(/\D+/g, '');
+                if (raw !== filtered) {
+                  setQtyError('Quantity accepts whole numbers only');
+                  setTimeout(() => setQtyError(''), 3000);
+                }
+                setForm({ ...form, quantity: filtered });
+              }}
+            />
+            {qtyError && <div className="text-sm text-red-600 mt-1">{qtyError}</div>}
             <input className="border rounded px-3 py-2" placeholder="Unit" value={form.unit} onChange={e=>setForm({...form, unit:e.target.value})} />
             <button disabled={saving || !form.name} onClick={save} className="inline-flex items-center justify-center px-3 py-2 bg-blue-600 text-white rounded-lg"><FiPlus className="mr-2" /> {form.id ? 'Update' : 'Add'}</button>
           </div>
@@ -138,6 +162,7 @@ const ProductsPage = () => {
                   <th className="py-2">SKU</th>
                   <th className="py-2">Rate</th>
                   <th className="py-2">Tax %</th>
+                  <th className="py-2">Stock</th>
                   <th className="py-2">Unit</th>
                   <th className="py-2">Actions</th>
                 </tr>
@@ -149,6 +174,7 @@ const ProductsPage = () => {
                     <td className="py-2">{p.sku || '-'}</td>
                     <td className="py-2">₹ {Number(p.rate).toFixed(2)}</td>
                     <td className="py-2">{Number(p.taxRate || 0).toFixed(2)}%</td>
+                    <td className="py-2">{p.quantity ?? 0}</td>
                     <td className="py-2">{p.unit || 'unit'}</td>
                     <td className="py-2 flex gap-2">
                       <button onClick={() => edit(p)} className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200"><FiEdit2 /></button>

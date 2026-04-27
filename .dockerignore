@@ -1,0 +1,11 @@
+node_modules/
+backend/node_modules/
+build/
+.env
+backend/.env
+.git/
+.idea/
+.vscode/
+npm-debug.log
+.qodo/
+docs/

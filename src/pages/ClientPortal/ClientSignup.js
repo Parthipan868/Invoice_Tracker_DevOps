@@ -12,7 +12,7 @@ const ClientSignup = () => {
   const { register, handleSubmit, watch, formState: { errors }, setValue } = useForm({
     defaultValues: { businessUserId: presetIsValid ? presetBusinessIdRaw : '', businessEmail: presetBusinessEmail || '' },
   });
-  const [submitted, setSubmitted] = useState(false);
+  const [submitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
