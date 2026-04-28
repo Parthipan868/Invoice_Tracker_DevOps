@@ -5,42 +5,58 @@ pipeline {
 
         stage('Checkout') {
             steps {
+                echo "📥 Cloning repository..."
                 checkout scm
             }
         }
 
         stage('Build & Run Full App') {
             steps {
-                script {
-                    echo "🐳 Running docker-compose..."
+                echo "🐳 Stopping old containers..."
+                bat 'docker-compose down'
 
-                    bat "docker-compose down"
-                    bat "docker-compose up -d --build"
+                echo "🚀 Building and starting containers..."
+
+                withCredentials([
+                    string(credentialsId: 'mongo-uri', variable: 'MONGODB_URI')
+                ]) {
+
+                    bat '''
+                    docker-compose up -d --build
+                    '''
                 }
             }
         }
 
-        stage('Verify') {
+        stage('Verify Backend') {
             steps {
-                script {
-                    echo "🩺 Checking backend..."
+                echo "🩺 Waiting for backend startup..."
+                sleep(time: 15, unit: 'SECONDS')
 
-                    bat "curl http://localhost:5000/health"
+                bat '''
+                curl -f http://localhost:5000/health || exit 1
+                '''
 
-                    echo "🩺 Checking frontend..."
-
-                    bat "curl http://localhost:80"
-                }
+                echo "✅ Backend is running!"
             }
         }
     }
 
     post {
+
         success {
-            echo "🎉 FULL APP DEPLOYED!"
+            echo "🎉 Pipeline Successful!"
+            echo "🌐 Frontend -> http://localhost:3000"
+            echo "🔧 Backend -> http://localhost:5000"
         }
+
         failure {
-            echo "❌ FAILED!"
+            echo "❌ Pipeline Failed. Check console logs."
+            bat 'docker-compose logs'
+        }
+
+        always {
+            echo "Pipeline execution completed."
         }
     }
 }
