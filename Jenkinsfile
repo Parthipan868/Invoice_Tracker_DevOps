@@ -17,7 +17,9 @@ pipeline {
         stage('Prepare .env') {
             steps {
                 // Create .env file for Docker Compose (ignored by git)
-                bat "echo MONGODB_URI=%MONGODB_URI% > .env"
+                script {
+                    writeFile file: '.env', text: "MONGODB_URI=${env.MONGODB_URI}"
+                }
             }
         }
 
