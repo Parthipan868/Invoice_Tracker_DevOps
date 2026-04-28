@@ -27,7 +27,7 @@ pipeline {
             steps {
                 echo "🐳 Building and starting containers..."
                 // Ensure previous containers are stopped
-                bat "docker-compose down"
+                bat "docker-compose down --remove-orphans"
                 bat "docker-compose up -d --build"
             }
         }
@@ -37,7 +37,7 @@ pipeline {
                 echo "🩺 Waiting for backend startup..."
                 sleep time: 15, unit: 'SECONDS'
                 // Simple health endpoint check; fails pipeline if not reachable
-                bat "curl -f http://localhost:5000/health || exit 1"
+                bat "curl -f http://localhost:5001/health || exit 1"
                 echo "✅ Backend is running!"
             }
         }
@@ -47,7 +47,7 @@ pipeline {
         success {
             echo "🎉 SUCCESS! Application deployed."
             echo "Frontend: http://localhost:3000"
-            echo "Backend : http://localhost:5000"
+            echo "Backend : http://localhost:5001"
         }
         failure {
             echo "❌ Pipeline failed. Printing container logs..."
