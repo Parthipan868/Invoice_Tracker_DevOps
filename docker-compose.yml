@@ -1,0 +1,17 @@
+services:
+
+  frontend:
+    build: .
+    container_name: invoice_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    container_name: invoice_backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env

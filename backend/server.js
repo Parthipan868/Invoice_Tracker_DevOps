@@ -1,3 +1,4 @@
+// ================== IMPORTS ==================
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -5,6 +6,10 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
+// ================== APP INIT ==================
+const app = express();
+
+// ================== ROUTES IMPORT ==================
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const invoiceRoutes = require('./routes/invoices');
@@ -15,46 +20,43 @@ const clientPortalRoutes = require('./routes/clientPortal');
 const productRoutes = require('./routes/products');
 const clientSignupRoutes = require('./routes/clientSignup');
 
-const app = express();
-
-// Security middleware
+// ================== SECURITY ==================
 app.use(helmet());
 
-// Rate limiting
+// Rate Limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 100
 });
 app.use(limiter);
 
-// CORS configuration
-const allowedOrigins = [process.env.FRONTEND_ORIGIN || 'http://localhost:3000'];
+// ================== CORS ==================
+const allowedOrigins = [
+  process.env.FRONTEND_ORIGIN || 'http://localhost:3000'
+];
+
 const corsOptions = {
-  origin: function(origin, callback) {
-    // Allow requests with no origin like mobile apps or curl
+  origin: function (origin, callback) {
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
     return callback(null, false);
   },
-  credentials: true,
-  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
-  optionsSuccessStatus: 204,
-  preflightContinue: false,
+  credentials: true
 };
 
-// Middleware
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
+
+// ================== BODY PARSER ==================
 app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/invoice-tracker')
-.then(() => console.log('MongoDB connected successfully'))
-.catch(err => console.error('MongoDB connection error:', err));
+// ================== DATABASE ==================
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('✅ MongoDB connected successfully'))
+  .catch(err => console.error('❌ MongoDB connection error:', err));
 
-// Routes
+// ================== API ROUTES ==================
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/invoices', invoiceRoutes);
@@ -65,39 +67,27 @@ app.use('/api/client-portal', clientPortalRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api', clientSignupRoutes);
 
-// Health check
+// ================== HEALTH CHECK ==================
 app.get('/health', (req, res) => {
   res.status(200).json({ message: 'Server is running!' });
 });
 
-// Serve frontend static files
-const path = require('path');
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Catch-all route to serve React app for non-API requests
-app.get('*', (req, res) => {
-  if (!req.path.startsWith('/api')) {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-  } else {
-    // If it's an API route that wasn't found, let it drop through to the 404 handler
-    res.status(404).json({ message: 'Route not found' });
-  }
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
-});
-
-// 404 handler
-app.use('*', (req, res) => {
+// ================== 404 HANDLER ==================
+app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
+// ================== ERROR HANDLER ==================
+app.use((err, req, res, next) => {
+  console.error("🔥 ERROR:", err);
+  res.status(500).json({ message: 'Something went wrong!' });
+});
+
+// ================== START SERVER ==================
 const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
 
 module.exports = app;
