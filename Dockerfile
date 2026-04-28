@@ -6,7 +6,8 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --legacy-peer-deps
 
-ARG REACT_APP_API_URL=http://localhost:5000/api
+# Build-time API URL (change later when backend is deployed)
+ARG REACT_APP_API_URL=http://host.docker.internal:5000/api
 ENV REACT_APP_API_URL=$REACT_APP_API_URL
 ENV NODE_ENV=production
 
