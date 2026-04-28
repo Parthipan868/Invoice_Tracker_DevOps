@@ -1,9 +1,7 @@
-version: "3.8"
-
 services:
 
   frontend:
-    build: .
+    build: ./frontend
     container_name: invoice_frontend
     ports:
       - "3000:80"
@@ -15,8 +13,5 @@ services:
     container_name: invoice_backend
     ports:
       - "5000:5000"
-
     environment:
       MONGODB_URI: ${MONGODB_URI}
-
-    restart: always
