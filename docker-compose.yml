@@ -1,17 +1,22 @@
 services:
-
   frontend:
-    build: ./frontend
-    container_name: invoice_frontend
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "3000:80"
+    environment:
+      - REACT_APP_API_URL=http://backend:5000/api
     depends_on:
       - backend
 
   backend:
-    build: ./backend
-    container_name: invoice_backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
       - "5000:5000"
-    environment:
-      MONGODB_URI: ${MONGODB_URI}
+    env_file:
+      - .env
+    depends_on:
+      - frontend
